@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<portlets>
+
+ <!-- Portlet type registrations -->
+
+ <portlet
+   addview="collective.portlet.videoanysurfer.VideoPortlet"
+   title="Video Portlet"
+   description="Portlet to display video compliant with anysurfer"
+   />
+
+</portlets>
