@@ -9,18 +9,11 @@
 
     <genericsetup:registerProfile
        name="default"
-       title="Video Portlet"
+       title="collective.portlet.videoanysurfer"
        directory="profiles/default"
        description="Portlet to display video compliant with anysurfer"
        provides="Products.GenericSetup.interfaces.EXTENSION"
        />
-
-     <!-- Register the portlet -->
-
-     <!-- If the portlet has no configurable parameters, you can remove
-          the EditForm declaration in videoportlet.py and delete
-          the 'editview' attribute from this statement.
-       -->
 
      <plone:portlet
          name="collective.portlet.videoanysurfer.VideoPortlet"

@@ -3,17 +3,32 @@
 
     <dt class="portletHeader">
         <span class="portletTopLeft"></span>
-        Header
+        <a tal:attributes="href view/data/video_url">
+            <span tal:content="view/data/header" />
+        </a>
         <span class="portletTopRight"></span>
     </dt>
 
     <dd class="portletItem odd">
-        Body text
+     <p>
+        <a class="videoanysurfer"
+           tal:attributes="href view/data/video_url"
+           tal:content="view/data/header">VIDEO TITLE</a>
+        <a class="captions" style="display:none;"
+           tal:condition="view/data/captions" tal:attributes="href view/captions_url">Captions</a>
+     </p>
     </dd>
 
     <dd class="portletFooter">
         <span class="portletBottomLeft"></span>
-        Footer
+        <span>
+           <a tal:condition="view/data/download_url"
+              tal:attributes="href view/data/download_url"
+              i18n:translate="">Download video</a>
+           <a tal:condition="view/data/transcription"
+              tal:attributes="href string:${view/transcription_url}"
+              i18n:translate="">Read transcription</a>
+        </span>
         <span class="portletBottomRight"></span>
     </dd>
 

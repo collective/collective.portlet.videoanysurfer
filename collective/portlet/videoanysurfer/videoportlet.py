@@ -1,21 +1,17 @@
-from zope.interface import implements
+from zope import interface
+from zope import schema
 
 from plone.portlets.interfaces import IPortletDataProvider
 from plone.app.portlets.portlets import base
 
-# TODO: If you define any fields for the portlet configuration schema below
-# do not forget to uncomment the following import
-#from zope import schema
 from zope.formlib import form
 
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
-# TODO: If you require i18n translation for any of your schema fields below,
-# uncomment the following to import your package MessageFactory
-#from collective.portlet.videoanysurfer import VideoPortletMessageFactory as _
+from collective.videoanysurfer.video import IVideoExtraData
+from collective.portlet.videoanysurfer import VideoPortletMessageFactory as _
 
 
-class IVideoPortlet(IPortletDataProvider):
+class IVideoPortlet(IPortletDataProvider, IVideoExtraData):
     """A portlet
 
     It inherits from IPortletDataProvider because for this portlet, the
@@ -23,14 +19,15 @@ class IVideoPortlet(IPortletDataProvider):
     same.
     """
 
-    # TODO: Add any zope.schema fields here to capture portlet configuration
-    # information. Alternatively, if there are no settings, leave this as an
-    # empty interface - see also notes around the add form and edit form
-    # below.
+    header = schema.TextLine(
+        title=_(u"Portlet header"),
+        description=_(u"Title of the rendered portlet"),
+        required=True)
 
-    # some_field = schema.TextLine(title=_(u"Some field"),
-    #                              description=_(u"A field to use"),
-    #                              required=True)
+    video_url = schema.URI(
+        title=_(u"Video URL"),
+        description=_(u"An URL from youtube"),
+        required=True)
 
 
 class Assignment(base.Assignment):
@@ -40,25 +37,28 @@ class Assignment(base.Assignment):
     with columns.
     """
 
-    implements(IVideoPortlet)
+    interface.implements(IVideoPortlet)
 
-    # TODO: Set default values for the configurable parameters here
+    header = u""
+    video_url = u""
+    captions = u""
+    transcription = u""
+    download_url = u""
 
-    # some_field = u""
-
-    # TODO: Add keyword parameters for configurable parameters here
-    # def __init__(self, some_field=u""):
-    #    self.some_field = some_field
-
-    def __init__(self):
-        pass
+    def __init__(self, header=u"", video_url=u"", captions=u"",
+                 transcription=u"", download_url=u""):
+        self.header = header
+        self.video_url = video_url
+        self.captions = captions
+        self.transcription = transcription
+        self.download_url = download_url
 
     @property
     def title(self):
         """This property is used to give the title of the portlet in the
-        "manage portlets" screen.
+        "manage portlets" screen. Here, we use the title that the user gave.
         """
-        return "Video Portlet"
+        return self.header
 
 
 class Renderer(base.Renderer):
@@ -70,6 +70,12 @@ class Renderer(base.Renderer):
     """
 
     render = ViewPageTemplateFile('videoportlet.pt')
+
+    def captions_url(self):
+        import pdb;pdb.set_trace()
+
+    def transcription_url(self):
+        pass
 
 
 class AddForm(base.AddForm):
@@ -83,21 +89,6 @@ class AddForm(base.AddForm):
 
     def create(self, data):
         return Assignment(**data)
-
-
-# NOTE: If this portlet does not have any configurable parameters, you
-# can use the next AddForm implementation instead of the previous.
-
-# class AddForm(base.NullAddForm):
-#     """Portlet add form.
-#     """
-#     def create(self):
-#         return Assignment()
-
-
-# NOTE: If this portlet does not have any configurable parameters, you
-# can remove the EditForm class definition and delete the editview
-# attribute from the <plone:portlet /> registration in configure.zcml
 
 
 class EditForm(base.EditForm):
