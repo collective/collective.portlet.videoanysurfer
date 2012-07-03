@@ -11,13 +11,19 @@ setup(name='collective.portlet.videoanysurfer',
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
+        "Environment :: Web Environment",
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Operating System :: OS Independent",
         "Framework :: Plone",
+        "Framework :: Plone :: 4.0",
+        "Framework :: Plone :: 4.1",
+        "Framework :: Plone :: 4.2",
         "Programming Language :: Python",
         ],
-      keywords='',
-      author='',
-      author_email='',
-      url='http://svn.plone.org/svn/collective/',
+      keywords='plone video anysurfer',
+      author='JeanMichel FRANCOIS aka toutpt',
+      author_email='toutpt@gmail.com',
+      url='https://github.com/collective/collective.portlet.videoanysurfer',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['collective', 'collective.portlet'],
@@ -25,6 +31,7 @@ setup(name='collective.portlet.videoanysurfer',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'collective.videoanysurfer',
           # -*- Extra requirements: -*-
       ],
       entry_points="""
