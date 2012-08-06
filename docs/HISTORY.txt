@@ -4,7 +4,7 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- update integration with new releases
 
 
 1.0 (2012-07-03)

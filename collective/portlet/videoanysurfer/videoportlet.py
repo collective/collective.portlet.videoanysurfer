@@ -1,18 +1,27 @@
+#python
+from captionstransformer import youtube
+from captionstransformer.registry import REGISTRY as CAPTION_REGISTRY
+
+#zope
 from zope import component
 from zope import interface
 from zope import schema
+from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
+from zope.formlib import form
+from Products.Five.browser import BrowserView
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
+#plone
+from plone.portlet.static import PloneMessageFactory as _p
 from plone.portlets.interfaces import IPortletDataProvider, IPortletRetriever
 from plone.app.portlets.portlets import base
 
-from zope.formlib import form
-
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from collective.videoanysurfer.video import IVideoExtraData
 from collective.portlet.videoanysurfer import VideoPortletMessageFactory as _
-from plone.portlet.static import PloneMessageFactory as _p
-from Products.Five.browser import BrowserView
+from collective.videoanysurfer.browser.link_view import VideoCaptions
+
 PORTLET_PATH = "%(context_path)s/++%(category)sportlets++%(manager)s/%(id)s"
+
 
 class IVideoPortlet(IPortletDataProvider, IVideoExtraData):
     """A portlet
@@ -32,12 +41,10 @@ class IVideoPortlet(IPortletDataProvider, IVideoExtraData):
         description=_(u"An URL from youtube"),
         required=True)
 
-#    omit_border = schema.Bool(
-#        title=_p(u"Omit portlet border"),
-#        description=_p(u"Tick this box if you want to render the text above "
-#                      "without the standard header, border or footer."),
-#        required=True,
-#        default=False)
+    update_youtube = schema.Bool(title=_(u"Update captions from youtube"),
+                description=_(u"This will download the caption from youtube"),
+                default=True)
+
 
 class Assignment(base.Assignment):
     """Portlet assignment.
@@ -51,17 +58,23 @@ class Assignment(base.Assignment):
     header = u""
     video_url = u""
     captions = u""
+    captions_format = u"TTML"
     transcription = u""
     download_url = u""
     omit_border = False
+    update_youtube = True
 
     def __init__(self, header=u"", video_url=u"", captions=u"",
-                 transcription=u"", download_url=u""): # , omit_border=False):
+                 captions_format=u"",
+                 transcription=u"", download_url=u"",
+                 update_youtube=False):
         self.header = header
         self.video_url = video_url
         self.captions = captions
+        self.captions_format = captions_format
         self.transcription = transcription
         self.download_url = download_url
+        self.update_youtube = update_youtube
 #        self.omit_border = omit_border
 
     @property
@@ -133,6 +146,7 @@ class Renderer(base.Renderer):
             return
         return '%s/@@video_transcription' % self.portlet_url
 
+
 class AddForm(base.AddForm):
     """Portlet add form.
 
@@ -143,7 +157,20 @@ class AddForm(base.AddForm):
     form_fields = form.Fields(IVideoPortlet)
 
     def create(self, data):
+
+        if data.get('update_youtube'):
+            # download captions:
+            language = self.get_language()
+            reader = youtube.get_reader(data.get('video_url'), language)
+            if reader:
+                reader.read()
+                data['captions'] = reader.rawcontent
+                data['captions_format'] = 'transcript'
+
         return Assignment(**data)
+
+    def get_language(self):
+        return 'fr'
 
 
 class EditForm(base.EditForm):
@@ -153,17 +180,55 @@ class EditForm(base.EditForm):
     zope.formlib which fields to display.
     """
     form_fields = form.Fields(IVideoPortlet)
+#        form = self.request.form
+#        if not form['captions']:
+#            form['captions'] = download_youtube_captions(form['video_url'])
+#            form['captions_format'] = 'transcript'
+#
+#        return super(EditForm, self).__call__()
 
 
-class CaptionsView(BrowserView):
+def modify_portlet_handler(ob, event):
+    if ob.update_youtube:
+        language = 'en'
+        reader = youtube.get_reader(ob.video_url, language)
+        if reader:
+            reader.read()
+            ob.captions = reader.rawcontent
+            ob.captions_format = 'transcript'
+
+
+class CaptionsView(VideoCaptions):
     """View to get captions for the portlet"""
 
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
 
-    def __call__(self):
+class PortletVideoExtraData(object):
+    """Implement IVideoExtraData for portlet Assignement"""
+    interface.implements(IVideoExtraData)
+
+    def __init__(self, context):
+        self.context = context
+
+    def update(self):
+        pass
+
+    @property
+    def captions(self):
         return self.context.captions
+
+    @property
+    def transcription(self):
+        return self.context.transcription
+
+    @property
+    def download_url(self):
+        return self.context.download_url
+
+    @property
+    def captions_format(self):
+        captions_format = self.context.captions_format
+        if captions_format:
+            return CAPTION_REGISTRY[captions_format]
 
 
 class TranscriptionView(BrowserView):

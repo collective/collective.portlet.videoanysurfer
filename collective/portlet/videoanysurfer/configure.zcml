@@ -40,4 +40,14 @@
         class=".videoportlet.TranscriptionView"
         permission="zope2.View"
         />
+
+    <subscriber
+      for="collective.portlet.videoanysurfer.videoportlet.IVideoPortlet
+           zope.lifecycleevent.interfaces.IObjectModifiedEvent"
+      handler=".videoportlet.modify_portlet_handler"/>
+
+    <adapter
+      for="plone.portlets.interfaces.IPortletAssignment"
+      factory=".videoportlet.PortletVideoExtraData"/>
+
 </configure>
