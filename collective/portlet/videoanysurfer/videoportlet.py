@@ -8,6 +8,7 @@ from zope import interface
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.formlib import form
+from zope.globalrequest import getRequest
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
@@ -58,14 +59,14 @@ class Assignment(base.Assignment):
     header = u""
     video_url = u""
     captions = u""
-    captions_format = u"TTML"
+    captions_format = "transcript"
     transcription = u""
     download_url = u""
     omit_border = False
     update_youtube = True
 
     def __init__(self, header=u"", video_url=u"", captions=u"",
-                 captions_format=u"",
+                 captions_format="transcript",
                  transcription=u"", download_url=u"",
                  update_youtube=False):
         self.header = header
@@ -157,20 +158,7 @@ class AddForm(base.AddForm):
     form_fields = form.Fields(IVideoPortlet)
 
     def create(self, data):
-
-        if data.get('update_youtube'):
-            # download captions:
-            language = self.get_language()
-            reader = youtube.get_reader(data.get('video_url'), language)
-            if reader:
-                reader.read()
-                data['captions'] = reader.rawcontent
-                data['captions_format'] = 'transcript'
-
         return Assignment(**data)
-
-    def get_language(self):
-        return 'fr'
 
 
 class EditForm(base.EditForm):
@@ -189,8 +177,10 @@ class EditForm(base.EditForm):
 
 
 def modify_portlet_handler(ob, event):
+    request = getRequest()
+    language = component.getMultiAdapter((ob, request),
+                                         name=u'plone_portal_state').language()
     if ob.update_youtube:
-        language = 'en'
         reader = youtube.get_reader(ob.video_url, language)
         if reader:
             reader.read()
