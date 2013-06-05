@@ -20,8 +20,9 @@
         <span class="portletTopRight"></span>
     </dt>
 
-    <dd class="portletItem odd">
-     <p>
+    <dd class="portletItem odd nomensa-wrapper" i18n:domain="collective.videoanysurfer">
+     <p class="hiddenStructure" i18n:translate="youtube-no-support">YouTube video player does not support this version of your browser !</p>
+     <p class="nomensa">
         <a class="videoanysurfer"
            tal:attributes="href view/data/video_url"
            tal:content="view/data/header">VIDEO TITLE</a>
@@ -49,3 +50,11 @@ jQuery(function($){
  $('.video-transcription').prepOverlay({subtype: 'ajax'});
 });
 </script>
+<!--[if lte IE 7]>
+   <script>
+       $('.nomensa-wrapper').each(function(index) {
+           $('.nomensa', this).remove();
+           $('.hiddenStructure', this).removeClass().addClass('nosupport');
+       });
+   </script>
+<![endif]-->
